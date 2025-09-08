@@ -20,7 +20,7 @@ defaults = {
         '-c:a': 'aac',
         '-b:a': '128k',
     },
-    'mp3v0': {  # V0
+    'mp3': {  # V0
         '-c:a': 'libmp3lame',
         '-q:a': '0',
     },
@@ -37,7 +37,7 @@ defaults = {
 suffixes = {
     'av1': '.av1-{-crf}.mp4',
     'x264': '.x264-{-crf}.mp4',
-    'mp3v0': '.v{-q:a}.mp3',
+    'mp3': '.v{-q:a}.mp3',
     'opus': '.v{-b:a}.opus',
     'flac': '.flac',
 }
