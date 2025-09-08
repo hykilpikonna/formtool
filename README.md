@@ -36,3 +36,10 @@ fav1 *.mp4
 # If you want to send videos to telegram
 fx264 video.mkv
 ```
+
+### Overriding default parameters
+
+```bash
+# If you want shrink file size even more, for example
+fav1 *.mp4 -crf 50
+```
