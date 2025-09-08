@@ -1,6 +1,6 @@
 import argparse
 
-from .__main__ import defaults, main
+from . import defaults, main
 
 
 def cli(fmt: str | None = None):
