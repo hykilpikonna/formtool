@@ -44,22 +44,26 @@ suffixes = {
 }
 
 
-def main():
+def cli():
     agupa = argparse.ArgumentParser("formtool", "ffmpeg shortcuts")
     agupa.add_argument('format', choices=defaults.keys(), help="Compression format to use.")
     agupa.add_argument('files', nargs='+', help="One or more files to compress.")
     agupa.add_argument('--keep', action='store_true', help="Keep original files after compression.")
     args, passthrough = agupa.parse_known_args()
 
+    main(args.format, args.files, args.keep, passthrough)
+
+
+def main(fmt: str, files: list[str], keep: bool, passthrough: list[str]):
     # Process each file provided on the command line
-    for inf in args.files:
+    for inf in files:
         inf = Path(inf)
 
         if not inf.exists():
             printc(f"&cError: File not found, skipping: {inf}")
             continue
 
-        end = f'.{args.format}.{suffixes[args.format]}'
+        end = f'.{fmt}.{suffixes[fmt]}'
         if inf.name.endswith(end):
             printc(f"&cError: File already has target suffix '{end}', skipping: {inf.name}")
             continue
@@ -67,7 +71,7 @@ def main():
         printc(f"&e-> Compressing '{inf.name}' > '{ouf.name}'")
 
         try:
-            params = defaults[args.format].copy()
+            params = defaults[fmt].copy()
             old_size = inf.stat().st_size
 
             # Check for any passthrough arguments and add them to params (overrides defaults)
@@ -86,7 +90,7 @@ def main():
             ratio = new_size / old_size
             printc(f"&a   Size: {old_size / 1_000_000:.2f} MB -> {new_size / 1_000_000:.2f} MB ({ratio:.2%})")
 
-            if not args.keep:
+            if not keep:
                 if new_size >= old_size:
                     printc(f"&c   Warning: Compressed file is not smaller than original! Keeping original file.")
                 else:
@@ -101,4 +105,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    cli()
