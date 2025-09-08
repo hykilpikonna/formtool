@@ -43,3 +43,8 @@ fx264 video.mkv
 # If you want shrink file size even more, for example
 fav1 *.mp4 -crf 50
 ```
+
+### Screenshots
+
+<img width="1913" height="1638" alt="image" src="https://github.com/user-attachments/assets/011e28b0-bb02-43f9-8770-c5160bed80ef" />
+
