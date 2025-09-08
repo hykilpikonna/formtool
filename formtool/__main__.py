@@ -21,7 +21,7 @@ defaults = {
         '-c:a': 'aac',
         '-b:a': '128k',
     },
-    'mp3': {  # V0
+    'mp3v0': {  # V0
         '-c:a': 'libmp3lame',
         '-q:a': '0',
     },
@@ -36,10 +36,10 @@ defaults = {
     },
 }
 suffixes = {
-    'av1': '.mp4',
-    'x264': '.mp4',
-    'mp3': '.mp3',
-    'opus': '.opus',
+    'av1': '.av1-{-crf}.mp4',
+    'x264': '.x264-{-crf}.mp4',
+    'mp3v0': '.v{-q:a}.mp3',
+    'opus': '.v{-b:a}.opus',
     'flac': '.flac',
 }
 
@@ -48,17 +48,11 @@ def main(fmt: str, files: list[str], keep: bool, passthrough: list[str]):
     # Process each file provided on the command line
     for inf in files:
         inf = Path(inf)
+        printc("&e-----------------------------------------")
 
         if not inf.exists():
             printc(f"&cError: File not found, skipping: {inf}")
             continue
-
-        end = f'.{fmt}.{suffixes[fmt]}'
-        if inf.name.endswith(end):
-            printc(f"&cError: File already has target suffix '{end}', skipping: {inf.name}")
-            continue
-        ouf = inf.with_name(f'{inf.stem}{end}')
-        printc(f"&e-> Compressing '{inf.name}' > '{ouf.name}'")
 
         try:
             params = defaults[fmt].copy()
@@ -67,31 +61,41 @@ def main(fmt: str, files: list[str], keep: bool, passthrough: list[str]):
             # Check for any passthrough arguments and add them to params (overrides defaults)
             _tmp = iter(passthrough)
             for k, v in zip(_tmp, _tmp):
-                printc(f"&a   Overriding parameter: {k} {v} (was {params.get(k, 'not set')})")
+                printc(f"&a> Overriding parameter: {k} {v} (was {params.get(k, 'not set')})")
                 params[k] = v
 
+            end = suffixes[fmt].format(**params)
+            if inf.name.endswith(end):
+                printc(f"&c> Error: File already has target suffix '{end}', skipping: {inf.name}")
+                continue
+            ouf = inf.with_name(f'{inf.stem}{end}')
+            printc(f"&e+ Compressing '{inf.name}' > '{ouf.name}'")
+
             # Construct and run the ffmpeg command
-            cmd = ['ffmpeg', '-hide_banner', '-i', inf.absolute(), *sum(([k, v] for k, v in params.items()), []), ouf]
-            printc(f"&e   Running command: {' '.join(cmd)}")
+            cmd = ['ffmpeg', '-hide_banner', '-i',
+                   str(inf),
+                   *sum(([k, v] for k, v in params.items()), []),
+                   str(ouf)]
+            printc(f"&e> Running command: {' '.join(cmd)}")
 
             check_call(cmd)
-            printc(f"&a   Compression successful :)")
+            printc(f"&a> Compression successful :)")
             new_size = ouf.stat().st_size
             ratio = new_size / old_size
-            printc(f"&a   Size: {old_size / 1_000_000:.2f} MB -> {new_size / 1_000_000:.2f} MB ({ratio:.2%})")
+            printc(f"&a> Size: {old_size / 1_000_000:.2f} MB -> {new_size / 1_000_000:.2f} MB ({ratio:.2%})")
 
             if not keep:
                 if new_size >= old_size:
-                    printc(f"&c   Warning: Compressed file is not smaller than original! Keeping original file.")
+                    printc(f"&c! Warning: Compressed file is not smaller than original. Keeping original file :(")
                 else:
                     inf.unlink()
-                    printc(f"&e   Removed original file: '{inf.name}'")
+                    printc(f"&e- Removed original file: '{inf.name}'")
 
             print()
 
         except Exception as e:
-            printc(f"&cAn error occurred while processing {inf.name}: {e}")
-            printc("&c   Leaving original file intact.\n")
+            printc(f"&c! An error occurred while processing {inf.name}: {e}")
+            printc("&c! Leaving original file intact.\n")
 
 
 if __name__ == "__main__":
