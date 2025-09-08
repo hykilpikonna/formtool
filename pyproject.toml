@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "hypy-utils>=1.0.29",
+    "rich>=14.1.0",
 ]
 
 [project.scripts]
@@ -15,3 +16,4 @@ fx264 = "formtool.__main__:x264"
 fmp3 = "formtool.__main__:mp3"
 fopus = "formtool.__main__:opus"
 fflac = "formtool.__main__:flac"
+fwav = "formtool.__main__:wav"
