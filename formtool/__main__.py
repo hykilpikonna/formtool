@@ -1,7 +1,6 @@
-from subprocess import check_call
-from pathlib import Path
 import argparse
-import sys
+from pathlib import Path
+from subprocess import check_call
 
 from hypy_utils import printc
 
@@ -14,7 +13,7 @@ def main():
 
     # Process each file provided on the command line
     for inf in args.files:
-        inf: Path = Path(inf)
+        inf = Path(inf)
 
         if not inf.exists():
             printc(f"&cError: File not found, skipping: {inf}")
