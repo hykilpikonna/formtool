@@ -7,3 +7,6 @@ requires-python = ">=3.10"
 dependencies = [
     "hypy-utils>=1.0.29",
 ]
+
+[project.scripts]
+formtool = "formtool.__main__:main"
