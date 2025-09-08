@@ -44,17 +44,6 @@ suffixes = {
 }
 
 
-def cli(fmt: str | None = None):
-    agupa = argparse.ArgumentParser("formtool", "ffmpeg shortcuts")
-    if fmt is None:
-        agupa.add_argument('format', choices=defaults.keys(), help="Compression format to use.")
-    agupa.add_argument('files', nargs='+', help="One or more files to compress.")
-    agupa.add_argument('--keep', action='store_true', help="Keep original files after compression.")
-    args, passthrough = agupa.parse_known_args()
-
-    main(fmt or args.format, args.files, args.keep, passthrough)
-
-
 def main(fmt: str, files: list[str], keep: bool, passthrough: list[str]):
     # Process each file provided on the command line
     for inf in files:

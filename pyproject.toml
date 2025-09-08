@@ -9,4 +9,9 @@ dependencies = [
 ]
 
 [project.scripts]
-formtool = "formtool.__main__:cli"
+formtool = "formtool.cli:cli"
+fav1 = "formtool.av1:main"
+fx264 = "formtool.x264:main"
+fmp3 = "formtool.mp3:main"
+fopus = "formtool.opus:main"
+fflac = "formtool.flac:main"
