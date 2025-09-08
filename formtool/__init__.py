@@ -1,4 +1,5 @@
 import glob
+import traceback
 from pathlib import Path
 from subprocess import check_call
 
@@ -59,16 +60,29 @@ def main(fmt: str, files: list[str], keep: bool, passthrough: list[str]):
     for inf in files:
         printc("&e-----------------------------------------")
         try:
-            params = defaults[fmt].copy()
+            params: dict[str, str | None] = defaults[fmt].copy()
             old_size = inf.stat().st_size
 
             # Check for any passthrough arguments and add them to params (overrides defaults)
-            _tmp = iter(passthrough)
-            for k, v in zip(_tmp, _tmp):
-                printc(f"&a> Overriding parameter: {k} {v} (was {params.get(k, 'not set')})")
-                params[k] = v
+            i = 0
+            while i < len(passthrough):
+                k = passthrough[i]
+                # Check if next item exists and is not a flag (i.e., it's a value)
+                if i + 1 < len(passthrough) and not passthrough[i+1].startswith('-'):
+                    v = passthrough[i+1]
+                    printc(f"&a> Overriding parameter: {k} {v} (was {params.get(k, 'not set')})")
+                    params[k] = v
+                    i += 2
+                else:  # It's a standalone flag
+                    printc(f"&a> Overriding parameter: {k} (was {params.get(k, 'not set')})")
+                    params[k] = None  # Use None to signify a flag without a value
+                    i += 1
 
-            end = suffixes[fmt].format(**params)
+            end = suffixes[fmt]
+            for ph, v in params.items():
+                end = end.replace(f'{{{ph}}}', str(v) if v is not None else '')
+            end = ''.join(c for c in end if c.isalnum() or c in ' ._-+').rstrip()
+
             if inf.name.endswith(end):
                 printc(f"&c> Error: File already has target suffix '{end}', skipping: {inf.name}")
                 continue
@@ -78,7 +92,7 @@ def main(fmt: str, files: list[str], keep: bool, passthrough: list[str]):
             # Construct and run the ffmpeg command
             cmd = ['ffmpeg', '-hide_banner', '-i',
                    str(inf),
-                   *sum(([k, v] for k, v in params.items()), []),
+                   *sum(([k] if v is None else [k, str(v)] for k, v in params.items()), []),
                    str(ouf)]
             printc(f"&e> Running command: {' '.join(cmd)}")
 
@@ -92,11 +106,13 @@ def main(fmt: str, files: list[str], keep: bool, passthrough: list[str]):
                 if new_size >= old_size:
                     printc(f"&c! Warning: Compressed file is not smaller than original. Keeping original file :(")
                 else:
+                    printc(f"&e- Removing original file: '{inf.name}'")
                     inf.unlink()
-                    printc(f"&e- Removed original file: '{inf.name}'")
+                    printc(f"&a> Original file removed.")
 
             print()
 
         except Exception as e:
             printc(f"&c! An error occurred while processing {inf.name}: {e}")
             printc("&c! Leaving original file intact.\n")
+            traceback.print_exc()
