@@ -7,6 +7,13 @@ Easy ffmpeg shortcuts
 - [x] You can override params
 - [x] Deletes original files if you want
 - [x] Shortcuts that are actually short
+- [x] has rgb :3
+
+
+
+https://github.com/user-attachments/assets/82d32a7f-6fa2-4d88-a8c8-35dd9e594287
+
+
 
 ## Install
 
