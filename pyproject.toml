@@ -4,4 +4,6 @@ version = "0.1.0"
 description = "ffmpeg command shortcuts"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+    "hypy-utils>=1.0.29",
+]

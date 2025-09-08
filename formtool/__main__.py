@@ -3,6 +3,8 @@ from pathlib import Path
 import argparse
 import sys
 
+from hypy_utils import printc
+
 
 def main():
     agupa = argparse.ArgumentParser("formtool", "ffmpeg shortcuts")
@@ -12,14 +14,14 @@ def main():
 
     # Process each file provided on the command line
     for inf in args.files:
-        inf = Path(inf)
+        inf: Path = Path(inf)
 
         if not inf.exists():
-            print(f"Error: File not found, skipping: {inf}", file=sys.stderr)
+            printc(f"&cError: File not found, skipping: {inf}")
             continue
 
-        ouf = f'{inf.stem}.comp.av1.mp4'
-        print(f"-> Compressing '{inf.name}'...")
+        ouf = inf.with_name(f'{inf.stem}.comp.av1.mp4')
+        printc(f"&e-> Compressing '{inf.name}' > '{ouf.name}'")
 
         try:
             params = {
@@ -30,28 +32,36 @@ def main():
                 '-b:a': '96k',
                 '-vbr': 'on',
             }
+            old_size = inf.stat().st_size
+
             # Check for any passthrough arguments and add them to params (overrides defaults)
             _tmp = iter(passthrough)
             for k, v in zip(_tmp, _tmp):
-                print(f"   Overriding parameter: {k} {v} (was {params.get(k, 'not set')})")
+                printc(f"&a   Overriding parameter: {k} {v} (was {params.get(k, 'not set')})")
                 params[k] = v
 
             # Construct and run the ffmpeg command
             cmd = ['ffmpeg', '-hide_banner', '-i', inf.absolute(), *sum(([k, v] for k, v in params.items()), []), ouf]
-            print(f"   Running command: {' '.join(cmd)}")
+            printc(f"&e   Running command: {' '.join(cmd)}")
 
             check_call(cmd)
-            print(f"   Compression successful.")
+            printc(f"&a   Compression successful :)")
+            new_size = ouf.stat().st_size
+            ratio = new_size / old_size
+            printc(f"&a   Size: {old_size / 1_000_000:.2f} MB -> {new_size / 1_000_000:.2f} MB ({ratio:.2%})")
 
             if not args.keep:
-                inf.unlink()
-                print(f"   Removed original file: '{inf.name}'")
+                if new_size >= old_size:
+                    printc(f"&c   Warning: Compressed file is not smaller than original! Keeping original file.")
+                else:
+                    inf.unlink()
+                    printc(f"&c   Removed original file: '{inf.name}'")
 
             print()
 
         except Exception as e:
-            print(f"An error occurred while processing {inf.name}: {e}", file=sys.stderr)
-            print("   Leaving original file intact.\n", file=sys.stderr)
+            printc(f"&cAn error occurred while processing {inf.name}: {e}")
+            printc("&c   Leaving original file intact.\n")
 
 
 if __name__ == "__main__":

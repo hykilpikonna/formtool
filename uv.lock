@@ -1,0 +1,23 @@
+version = 1
+revision = 3
+requires-python = ">=3.10"
+
+[[package]]
+name = "formtool"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "hypy-utils" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "hypy-utils", specifier = ">=1.0.29" }]
+
+[[package]]
+name = "hypy-utils"
+version = "1.0.29"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e1/02/6c93a5f7be972d55b4a29c14ffa4d9e1ae919449084861584dd2c18ba12a/hypy_utils-1.0.29.tar.gz", hash = "sha256:c72217df93e62f1c9af955e4f8cecd92ef51428c6c7399efc824cfb41fd9c4bd", size = 1403860, upload-time = "2024-12-10T11:51:14.233Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e8/34/7e4f6c09da586d317a74958e6b853da8a4c220898c5a8adf98030abb1492/hypy_utils-1.0.29-py3-none-any.whl", hash = "sha256:146a5aa85d3b4bc175e64d3f9e26befd0d87d221c4366eb70e137e46933eb65d", size = 18099, upload-time = "2024-12-10T11:51:12.019Z" },
+]
