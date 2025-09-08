@@ -6,47 +6,51 @@ import sys
 
 def main():
     agupa = argparse.ArgumentParser("formtool", "ffmpeg shortcuts")
-    arg = agupa.add_argument
-
-    arg('files', nargs='+', help="One or more video files to compress.")
-    arg('--crf', type=int, default=36, help="Constant Rate Factor for quality control (lower is better quality)")
-    arg('--preset', type=int, default=8, help="Encoding preset for speed/quality trade-off.")
-
-    args = agupa.parse_args()
+    agupa.add_argument('files', nargs='+', help="One or more video files to compress.")
+    agupa.add_argument('--keep', action='store_true', help="Keep original files after compression.")
+    args, passthrough = agupa.parse_known_args()
 
     # Process each file provided on the command line
-    for file_str in args.files:
-        video_path = Path(file_str)
+    for inf in args.files:
+        inf = Path(inf)
 
-        if not video_path.exists():
-            print(f"Error: File not found, skipping: {video_path}", file=sys.stderr)
+        if not inf.exists():
+            print(f"Error: File not found, skipping: {inf}", file=sys.stderr)
             continue
 
-        output_filename = f'{video_path.stem}.comp.av1-crf{args.crf}.mp4'
-        print(f"-> Compressing '{video_path.name}'...")
-        print(f"   CRF: {args.crf}, Preset: {args.preset}, Output: '{output_filename}'")
+        ouf = f'{inf.stem}.comp.av1.mp4'
+        print(f"-> Compressing '{inf.name}'...")
 
         try:
-            # Construct and run the ffmpeg command
-            check_call([
-                'ffmpeg',
-                '-hide_banner', '-i', video_path,
-                '-c:v', 'libsvtav1',
-                '-crf', str(args.crf),
-                '-preset', str(args.preset),
-                '-c:a', 'libopus',
-                '-b:a', '96k', '-vbr', 'on',
-                output_filename
-            ])
+            params = {
+                '-c:v': 'libsvtav1',
+                '-crf': '36',
+                '-preset': '8',
+                '-c:a': 'libopus',
+                '-b:a': '96k',
+                '-vbr': 'on',
+            }
+            # Check for any passthrough arguments and add them to params (overrides defaults)
+            _tmp = iter(passthrough)
+            for k, v in zip(_tmp, _tmp):
+                print(f"   Overriding parameter: {k} {v} (was {params.get(k, 'not set')})")
+                params[k] = v
 
+            # Construct and run the ffmpeg command
+            cmd = ['ffmpeg', '-hide_banner', '-i', inf.absolute(), *sum(([k, v] for k, v in params.items()), []), ouf]
+            print(f"   Running command: {' '.join(cmd)}")
+
+            check_call(cmd)
             print(f"   Compression successful.")
 
-            # Remove the original video after successful compression
-            video_path.unlink()
-            print(f"   Removed original file: '{video_path.name}'\n")
+            if not args.keep:
+                inf.unlink()
+                print(f"   Removed original file: '{inf.name}'")
+
+            print()
 
         except Exception as e:
-            print(f"An error occurred while processing {video_path.name}: {e}", file=sys.stderr)
+            print(f"An error occurred while processing {inf.name}: {e}", file=sys.stderr)
             print("   Leaving original file intact.\n", file=sys.stderr)
 
 
