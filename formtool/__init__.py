@@ -1,10 +1,8 @@
-import argparse
 import glob
 from pathlib import Path
 from subprocess import check_call
 
 from hypy_utils import printc
-
 
 defaults = {
     'av1': {
