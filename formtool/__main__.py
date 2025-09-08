@@ -5,9 +5,49 @@ from subprocess import check_call
 from hypy_utils import printc
 
 
+defaults = {
+    'av1': {
+        '-c:v': 'libsvtav1',
+        '-crf': '36',
+        '-preset': '8',
+        '-c:a': 'libopus',
+        '-b:a': '96k',
+        '-vbr': 'on',
+    },
+    'x264': {  # For older devices
+        '-c:v': 'libx264',
+        '-crf': '23',
+        '-preset': 'medium',
+        '-c:a': 'aac',
+        '-b:a': '128k',
+    },
+    'mp3': {  # V0
+        '-c:a': 'libmp3lame',
+        '-q:a': '0',
+    },
+    'opus': {
+        '-c:a': 'libopus',
+        '-b:a': '192k',
+        '-vbr': 'on',
+    },
+    'flac': {
+        '-c:a': 'flac',
+        '-compression_level': '7',
+    },
+}
+suffixes = {
+    'av1': '.mp4',
+    'x264': '.mp4',
+    'mp3': '.mp3',
+    'opus': '.opus',
+    'flac': '.flac',
+}
+
+
 def main():
     agupa = argparse.ArgumentParser("formtool", "ffmpeg shortcuts")
-    agupa.add_argument('files', nargs='+', help="One or more video files to compress.")
+    agupa.add_argument('format', choices=defaults.keys(), help="Compression format to use.")
+    agupa.add_argument('files', nargs='+', help="One or more files to compress.")
     agupa.add_argument('--keep', action='store_true', help="Keep original files after compression.")
     args, passthrough = agupa.parse_known_args()
 
@@ -19,18 +59,15 @@ def main():
             printc(f"&cError: File not found, skipping: {inf}")
             continue
 
-        ouf = inf.with_name(f'{inf.stem}.comp.av1.mp4')
+        end = f'.{args.format}.{suffixes[args.format]}'
+        if inf.name.endswith(end):
+            printc(f"&cError: File already has target suffix '{end}', skipping: {inf.name}")
+            continue
+        ouf = inf.with_name(f'{inf.stem}{end}')
         printc(f"&e-> Compressing '{inf.name}' > '{ouf.name}'")
 
         try:
-            params = {
-                '-c:v': 'libsvtav1',
-                '-crf': '36',
-                '-preset': '8',
-                '-c:a': 'libopus',
-                '-b:a': '96k',
-                '-vbr': 'on',
-            }
+            params = defaults[args.format].copy()
             old_size = inf.stat().st_size
 
             # Check for any passthrough arguments and add them to params (overrides defaults)
@@ -54,7 +91,7 @@ def main():
                     printc(f"&c   Warning: Compressed file is not smaller than original! Keeping original file.")
                 else:
                     inf.unlink()
-                    printc(f"&c   Removed original file: '{inf.name}'")
+                    printc(f"&e   Removed original file: '{inf.name}'")
 
             print()
 
