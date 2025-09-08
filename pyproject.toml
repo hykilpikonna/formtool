@@ -1,0 +1,7 @@
+[project]
+name = "formtool"
+version = "0.1.0"
+description = "ffmpeg command shortcuts"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
