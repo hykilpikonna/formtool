@@ -9,4 +9,4 @@ dependencies = [
 ]
 
 [project.scripts]
-formtool = "formtool.__main__:main"
+formtool = "formtool.__main__:cli"
